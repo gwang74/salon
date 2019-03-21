@@ -1,0 +1,56 @@
+{
+  "name": "AHBCSALON",
+  "version": "0.0.1",
+  "description": "Anhui blockchain salon project",
+  "main": "truffle-config.js",
+  "directories": {
+    "contracts": "contracts",
+    "migrations": "migrations",
+    "test": "test"
+  },
+  "scripts": {
+    "clean": "rm -Rf ./build",
+    "compile": "truffle compile",
+    "console": "truffle console",
+    "flatten": "mkdir -p build && truffle-flattener contracts/**/*.sol >> build/bundle.sol",
+    "lint": "eslint './**/*.js?(x)'",
+    "migrate": "truffle migrate",
+    "networks": "truffle networks",
+    "postpublish": "npm run clean",
+    "prepublish": "npm run compile",
+    "test": "npm run clean && truffle test"
+  },
+  "author": "https://github.com/trifist",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JCCDex/AHBCSalon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JCCDex/AHBCSalon/issues"
+  },
+  "homepage": "https://github.com/JCCDex/AHBCSalon/contract",
+  "keywords": [
+    "blockchain",
+    "moac",
+    "contract",
+    "contracts",
+    "smart",
+    "smart-contract",
+    "smart-contracts",
+    "token",
+    "tokens"
+  ],
+  "devDependencies": {
+    "eslint": "^5.10.0",
+    "ethjs-util": "^0.1.6",
+    "truffle": "^5.0.0",
+    "truffle-flattener": "^1.2.10",
+    "bignumber.js": "^8.0.1",
+    "web3": "^1.0.0-beta.37"
+  },
+  "dependencies": {
+    "@0xcert/ethereum-utils": "^1.1.0",
+    "truffle-hdwallet-provider": "^1.0.5"
+  }
+}
