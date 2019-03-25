@@ -79,6 +79,7 @@
 import SalonToken from "../js/SalonToken";
 import Salon from "../js/Salon";
 import Tp from "tp-js-sdk";
+import { constants } from "fs";
 
 export default {
   data() {
@@ -89,18 +90,25 @@ export default {
       tokenBalance: 0,
       totalSupply: 0,
       dialog: false,
-      isAdmin: true
+      isAdmin: false
     };
   },
-  beforeCreate: function() {
-    Salon.init();
-    SalonToken.init();
+  beforeCreate:async function() {
+   await Salon.init();
+   await SalonToken.init();
+   console.log(Salon.fromAddress);
+   this.address= Salon.fromAddress;
+   this.isAdministrator();
   },
   mounted: async function() {
-    await Salon.init();
-    await SalonToken.init();
-    // this.getBalance();
-    // this.isAdministrator();
+    try {
+      await Salon.init();
+      await SalonToken.init();
+      // this.getBalance();
+      this.isAdministrator();
+    } catch (error) {
+      alert(error);
+    }
   },
   methods: {
     getTotalSupply: async function() {
@@ -123,7 +131,9 @@ export default {
       this.$emit("toNewCampaign");
     },
     isAdministrator: async function() {
-      this.isAdmin = await Salon.isAdministrator();
+      this.isAdmin = await Salon.isAdministrator().catch(err => {
+        console.log(err);
+      });
     }
   }
 };

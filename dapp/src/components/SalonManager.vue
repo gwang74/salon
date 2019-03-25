@@ -135,7 +135,7 @@ export default {
         }
       ],
       editedItem: {
-        campaignID: "20190321",
+        campaignID: "20190322",
         topic: "test",
         speaker: "0x845f235068B96F34e919324ac29fbBF75bf35bef",
         sponsor: "0x652dC7534dC53455B92A54233606217aeF4a10DD"
