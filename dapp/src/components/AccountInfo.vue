@@ -1,6 +1,6 @@
 <template>
   <v-content>
-    <v-dialog v-model="dialog" hide-overlay transition="dialog-bottom-transition">
+    <v-dialog v-model="dialog" persistent="true">
       <v-card>
         <v-card-text>
           <v-text-field
@@ -46,14 +46,25 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-layout row wrap>
+      <v-flex xs2>
+        <v-snackbar v-model="snackbar" :multi-line="true" :top="true" :color="color">
+          <div>{{message}}</div>
+          <v-icon size="16" @click="snackbar = false">mdi-close-circle</v-icon>
+        </v-snackbar>
+      </v-flex>
+    </v-layout>
     <div>
       <v-card-text primary-title class="text-xs-center">
         <div>
           <div class="orange--text text--lighten-1" v-show="isAdmin">管理员</div>
+          <br>
+          <span>{{address}}</span>
         </div>
       </v-card-text>
       <v-avatar slot="offset" class="mx-auto d-block" size="130">
-        <img src="https://demos.creative-tim.com/vue-material-dashboard/img/marc.aba54d65.jpg">
+        <!-- <img src="https://demos.creative-tim.com/vue-material-dashboard/img/marc.aba54d65.jpg"> -->
+        <img :src="salonImg">
       </v-avatar>
     </div>
     <v-card-text class="text-xs-center">
@@ -78,8 +89,6 @@
 <script>
 import SalonToken from "../js/SalonToken";
 import Salon from "../js/Salon";
-import Tp from "tp-js-sdk";
-import { constants } from "fs";
 
 export default {
   data() {
@@ -90,24 +99,29 @@ export default {
       tokenBalance: 0,
       totalSupply: 0,
       dialog: false,
-      isAdmin: false
+      isAdmin: false,
+      snackbar: false,
+      message: "",
+      color: "",
+      salonImg: require("../assets/salon.png")
     };
   },
-  beforeCreate:async function() {
-   await Salon.init();
-   await SalonToken.init();
-   console.log(Salon.fromAddress);
-   this.address= Salon.fromAddress;
-   this.isAdministrator();
+  beforeCreate: async function() {
+    try {
+      this.isAdmin = await Salon.init();
+      await SalonToken.init();
+      this.address = Salon.fromAddress;
+    } catch (e) {
+      console.log(e);
+    }
   },
   mounted: async function() {
     try {
-      await Salon.init();
       await SalonToken.init();
-      // this.getBalance();
-      this.isAdministrator();
-    } catch (error) {
-      alert(error);
+      // this.isAdministrator();
+      this.getBalance();
+    } catch (e) {
+      console.log(e);
     }
   },
   methods: {
@@ -118,7 +132,19 @@ export default {
       this.tokenBalance = await SalonToken.getBalance();
     },
     transfer: async function() {
-      const res = await SalonToken.transfer(this.toAddress, this.amount);
+      const res = await SalonToken.transfer(this.toAddress, this.amount).catch(
+        e => {
+          console.log(e);
+        }
+      );
+      if (res) {
+        this.message = "转账成功!";
+        this.color = "success";
+      } else {
+        this.color = "error";
+        this.message = "转账失败!";
+      }
+      this.snackbar = true;
       this.dialog = false;
     },
     isAddress: function(address) {
@@ -131,8 +157,8 @@ export default {
       this.$emit("toNewCampaign");
     },
     isAdministrator: async function() {
-      this.isAdmin = await Salon.isAdministrator().catch(err => {
-        console.log(err);
+      this.isAdmin = await Salon.isAdministrator().catch(e => {
+        console.log(e);
       });
     }
   }

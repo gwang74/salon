@@ -1,10 +1,6 @@
 // import Contract from "truffle-contract"
 // import salonContract from "../../../contract/build/contracts/Salon.json";
 import tp from "tp-js-sdk";
-import VConsole from 'vconsole';
-// import {Eth} from 'web3-eth';
-// let Web3 = require('web3');
-let vConsole = new VConsole();
 
 const Salon = {
   // contract: null,
@@ -33,6 +29,9 @@ const Salon = {
       gasPrice: "20000000000",
       gas: 8000000
     });
+
+    let admin = await self.instance.methods.administrator().call();
+    return admin == self.fromAddress;
   },
 
   newCampaign: async function (campaignID, topic, speaker, sponsor) {
@@ -155,12 +154,13 @@ const Salon = {
     }
   },
 
-  isStarting: async function (campaignID) {
+  getSalonInfo: async function (campaignID) {
     let self = this;
     try {
-      let result = await self.instance.campaigns(campaignID).call();
-      let id = web3.utils.fromWei(result.ID);
-      return id == campaignID && !result;
+      console.log(campaignID)
+      let res = await self.instance.methods.campaigns(campaignID).call();
+      console.log(res);
+      return res;
     } catch (e) {
       console.log(e);
       return false;

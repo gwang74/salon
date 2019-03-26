@@ -5,6 +5,8 @@ import router from './router'
 import store from './store'
 import 'vuetify/dist/vuetify.min.css'
 import Web3 from 'web3'
+import VConsole from 'vconsole';
+let vConsole = new VConsole();
 
 Vue.config.productionTip = false
 
