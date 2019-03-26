@@ -30,13 +30,17 @@ const SalonToken = {
 
   totalSupply: async function () {
     let self = this;
-    let tokenWei = await self.instance.totalSupply().call();
+    let tokenWei = await self.instance.totalSupply().call().catch(e => {
+      console.log(e);
+    });
     return web3.utils.fromWei(tokenWei);
   },
 
   getBalance: async function () {
     let self = this;
-    let tokenWei = await self.instance.balanceOf(self.instance.options.from).call();
+    let tokenWei = await self.instance.balanceOf(self.instance.options.from).call().catch(e => {
+      console.log(e);
+    });
     return web3.utils.fromWei(tokenWei.toString());
   },
 
@@ -51,9 +55,13 @@ const SalonToken = {
       gasLimit: self.instance.options.gas,
       data: data
     };
-    let res = await tp.signEthTransaction(transaction);
+    let res = await tp.signEthTransaction(transaction).catch(e => {
+      console.log(e);
+    });
     if (res.result) {
-      let transaction = await web3.eth.sendSignedTransaction(res.data);
+      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+        console.log(e);
+      });
       //transaction success
       if (web3.utils.hexToNumber(transaction.status) == 1) {
         return true;

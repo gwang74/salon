@@ -45,9 +45,13 @@ const Salon = {
       data: data
     };
 
-    let res = await tp.signEthTransaction(transaction);
+    let res = await tp.signEthTransaction(transaction).catch(e => {
+      console.log(e);
+    });
     if (res.result) {
-      let transaction = await web3.eth.sendSignedTransaction(res.data);
+      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+        console.log(e);
+      });
       //transaction success
       if (web3.utils.hexToNumber(transaction.status) == 1) {
         return true;
@@ -79,9 +83,13 @@ const Salon = {
       gasLimit: self.instance.options.gas,
       data: data
     };
-    let res = await tp.signEthTransaction(transaction);
+    let res = await tp.signEthTransaction(transaction).catch(e => {
+      console.log(e);
+    });
     if (res.result) {
-      let transaction = await web3.eth.sendSignedTransaction(res.data);
+      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+        console.log(e);
+      });
       //transaction success
       if (web3.utils.hexToNumber(transaction.status) == 1) {
         return true;
@@ -99,9 +107,37 @@ const Salon = {
       gasLimit: self.instance.options.gas,
       data: data
     };
-    let res = await tp.signEthTransaction(transaction);
+    let res = await tp.signEthTransaction(transaction).catch(e => {
+      console.log(e);
+    });
     if (res.result) {
-      let transaction = await web3.eth.sendSignedTransaction(res.data);
+      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+        console.log(e);
+      });
+      //transaction success
+      if (web3.utils.hexToNumber(transaction.status) == 1) {
+        return true;
+      }
+    }
+  },
+
+  addQuestion: async function (campaignID, questioner, replier) {
+    let self = this;
+    let data = self.instance.methods.addQuestion(campaignID, questioner, replier).encodeABI();
+    let transaction = {
+      from: self.instance.options.from,
+      to: self.instance.options.address,
+      gasPrice: self.instance.options.gasPrice,
+      gasLimit: self.instance.options.gas,
+      data: data
+    };
+    let res = await tp.signEthTransaction(transaction).catch(e => {
+      console.log(e);
+    });
+    if (res.result) {
+      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+        console.log(e);
+      });
       //transaction success
       if (web3.utils.hexToNumber(transaction.status) == 1) {
         return true;
@@ -124,9 +160,13 @@ const Salon = {
       gasLimit: self.instance.options.gas,
       data: data
     };
-    let res = await tp.signEthTransaction(transaction);
+    let res = await tp.signEthTransaction(transaction).catch(e => {
+      console.log(e);
+    });
     if (res.result) {
-      let transaction = await web3.eth.sendSignedTransaction(res.data);
+      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+        console.log(e);
+      });
       //transaction success
       if (web3.utils.hexToNumber(transaction.status) == 1) {
         return true;
@@ -144,9 +184,13 @@ const Salon = {
       gasLimit: self.instance.options.gas,
       data: data
     };
-    let res = await tp.signEthTransaction(transaction);
+    let res = await tp.signEthTransaction(transaction).catch(e => {
+      console.log(e);
+    });
     if (res.result) {
-      let transaction = await web3.eth.sendSignedTransaction(res.data);
+      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+        console.log(e);
+      });
       //transaction success
       if (web3.utils.hexToNumber(transaction.status) == 1) {
         return true;
@@ -156,31 +200,14 @@ const Salon = {
 
   getSalonInfo: async function (campaignID) {
     let self = this;
-    try {
-      console.log(campaignID)
-      let res = await self.instance.methods.campaigns(campaignID).call();
-      console.log(res);
-      return res;
-    } catch (e) {
+    let res = await self.instance.methods.campaigns(campaignID).call().catch(e => {
       console.log(e);
-      return false;
-    }
+    });
+    return res;
   },
 
   isAddress: function (address) {
     return web3.utils.isAddress(address);
-  },
-
-  isAdministrator: async function () {
-    let self = this;
-    let fromAdd = self.instance.options.from;
-    let admin = await self.instance.methods.administrator().call();
-    return admin == fromAdd;
-  },
-
-  getFromAddress: function () {
-    let self = this;
-    return self.fromAddress;
   }
 };
 

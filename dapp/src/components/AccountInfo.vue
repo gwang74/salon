@@ -6,10 +6,8 @@
           <v-text-field
             ref="fromAddress"
             v-model="address"
-            :rules="[() => !!address || 'This field is required']"
             label="转账地址"
             clear-icon="mdi-close-circle"
-            required
             disabled
             box
           ></v-text-field>
