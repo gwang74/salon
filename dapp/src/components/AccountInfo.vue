@@ -56,12 +56,9 @@
       <v-card-text primary-title class="text-xs-center">
         <div>
           <div class="orange--text text--lighten-1" v-show="isAdmin">管理员</div>
-          <br>
-          <span>{{address}}</span>
         </div>
       </v-card-text>
       <v-avatar slot="offset" class="mx-auto d-block" size="130">
-        <!-- <img src="https://demos.creative-tim.com/vue-material-dashboard/img/marc.aba54d65.jpg"> -->
         <img :src="salonImg">
       </v-avatar>
     </div>

@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "chain3": "^0.1.16",
     "tp-js-sdk": "^3.0.1",
     "vue": "^2.6.6",
     "vue-router": "^3.0.1",
