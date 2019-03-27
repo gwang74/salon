@@ -299,8 +299,8 @@ export default {
         return;
       }
       let res = await Salon.getSalonInfo(this.search);
-      if (res) {
-        if (res.ID) {
+      if (res && res.ID != 0) {
+        if (!res.end) {
           this.salons.campaignID = res.ID;
           this.salons.topic = res.topic;
           this.salons.speaker = res.speaker;
@@ -310,6 +310,7 @@ export default {
           this.message = "抱歉,沙龙已关闭";
           this.color = "warning";
           this.snackbar = true;
+          this.isSalon = false;
         }
       } else {
         this.color = "warning";
