@@ -27,7 +27,7 @@ const SalonToken = {
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
       // const contract = chain3.mc.contract(abi);
-      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_TOKENABI)).at('');
+      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_TOKENABI)).at(process.env.VUE_APP_TOKEN_ADDRESS_MOAC);
     } else {
       self.instance = new web3.eth.Contract(JSON.parse(process.env.VUE_APP_TOKENABI), process.env.VUE_APP_TOKEN_ADDRESS);
     }

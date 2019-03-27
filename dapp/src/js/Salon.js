@@ -26,7 +26,7 @@ const Salon = {
     self.fromAddress = res.data.address;
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
       // const contract = chain3.mc.contract(abi);
-      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_SALONABI)).at('');
+      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_SALONABI)).at(process.env.VUE_APP_SALON_ADDRESS_MOAC);
     } else {
       self.instance = new web3.eth.Contract(abi, process.env.VUE_APP_SALON_ADDRESS);
       // self.instance = new web3.eth.Contract(abi, "0x5a8347056c9712994a694A27d3b017eEc7a60e40", {
@@ -57,7 +57,7 @@ const Salon = {
       gasLimit: process.env.VUE_APP_GAS,
       data: data
     };
-    
+
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
       let res = await tp.signMoacTransaction(transaction).catch(e => {
         console.log(e);
