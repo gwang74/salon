@@ -299,7 +299,8 @@ export default {
         return;
       }
       let res = await Salon.getSalonInfo(this.search);
-      if (res && res.ID != 0) {
+      console.log(res);
+      if (res && res.topic) {
         if (!res.end) {
           this.salons.campaignID = res.ID;
           this.salons.topic = res.topic;
