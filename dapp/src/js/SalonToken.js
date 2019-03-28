@@ -9,6 +9,8 @@ const SalonToken = {
 
   fromAddress: null,
 
+  toAddress: null,
+
   init: async function () {
     let self = this;
 
@@ -24,9 +26,17 @@ const SalonToken = {
     const res = await tp.getCurrentWallet();
     self.fromAddress = res.data.address;
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_TOKENABI)).at(process.env.VUE_APP_TOKEN_ADDRESS_MOAC);
+      self.toAddress = process.env.VUE_APP_TOKEN_ADDRESS_MOAC;
+      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_TOKENABI)).at(self.toAddress);
+      // let res = self.instance.transferAdministrator(process.env.VUE_APP_SALON_ADDRESS_MOAC, {
+      //   from: self.fromAddress,
+      //   gasPrice: process.env.VUE_APP_GASPRICE,
+      //   gasLimit: process.env.VUE_APP_GAS,
+      // })
+      // console.log(res);
     } else {
-      self.instance = new web3.eth.Contract(JSON.parse(process.env.VUE_APP_TOKENABI), process.env.VUE_APP_TOKEN_ADDRESS);
+      self.toAddress = process.env.VUE_APP_TOKEN_ADDRESS;
+      self.instance = new web3.eth.Contract(JSON.parse(process.env.VUE_APP_TOKENABI), self.toAddress);
     }
   },
 
@@ -34,9 +44,7 @@ const SalonToken = {
     let self = this;
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let tokens = await self.instance.totalSupply.call().catch(e => {
-        console.log(e);
-      });
+      let tokens = self.instance.totalSupply();
       return chain3.fromSha(tokens, 'mc');
     }
     let tokens = await self.instance.methods.totalSupply().call().catch(e => {
@@ -48,9 +56,7 @@ const SalonToken = {
   getBalance: async function () {
     let self = this;
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let tokens = await self.instance.balanceOf.call(self.fromAddress).catch(e => {
-        console.log(e);
-      });
+      let tokens = self.instance.balanceOf(self.fromAddress);
       return chain3.fromSha(tokens, 'mc');
     }
     let tokens = await self.instance.methods.balanceOf(self.fromAddress).call().catch(e => {
@@ -74,21 +80,27 @@ const SalonToken = {
 
     let transaction = {
       from: self.fromAddress,
-      to: process.env.VUE_APP_TOKEN_ADDRESS,
+      to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
+      chainId: process.env.VUE_APP_CHAINID,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.signMoacTransaction(transaction).catch(e => {
+      let res = await tp.pushMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
+      console.log(res);
       if (res.result) {
-        let transaction = await chain3.mc.sendRawTransaction(res.data).catch(e => {
-          console.log(e);
+        return new Promise((resolve, reject) => {
+          const recepit = chain3.mc.getTransactionReceipt(res.data);
+          if (recepit && recepit.status) {
+            resolve(true);
+          } else {
+            reject(false);
+          }
         });
-        //transaction success
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {

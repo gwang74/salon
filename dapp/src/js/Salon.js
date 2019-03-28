@@ -9,6 +9,8 @@ const Salon = {
 
   fromAddress: null,
 
+  toAddress: null,
+
   init: async function () {
     let self = this;
     let admin;
@@ -25,10 +27,12 @@ const Salon = {
     const res = await tp.getCurrentWallet();
     self.fromAddress = res.data.address;
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_SALONABI)).at(process.env.VUE_APP_SALON_ADDRESS_MOAC);
-      admin = await self.instance.administrator.call();
+      self.toAddress = process.env.VUE_APP_SALON_ADDRESS_MOAC;
+      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_SALONABI)).at(self.toAddress);
+      admin = chain3.toChecksumAddress(self.instance.administrator());
     } else {
-      self.instance = new web3.eth.Contract(JSON.parse(process.env.VUE_APP_SALONABI), process.env.VUE_APP_SALON_ADDRESS);
+      self.toAddress = process.env.VUE_APP_SALON_ADDRESS;
+      self.instance = new web3.eth.Contract(JSON.parse(process.env.VUE_APP_SALONABI), self.toAddress);
       admin = await self.instance.methods.administrator().call();
     }
     return admin === self.fromAddress;
@@ -43,24 +47,47 @@ const Salon = {
     } else {
       data = self.instance.methods.newCampaign(campaignID, topic, speaker, sponsor).encodeABI();
     }
-    console.log(self.fromAddress);
+
     let transaction = {
       from: self.fromAddress,
-      to: process.env.VUE_APP_SALON_ADDRESS,
+      to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
+      chainId: process.env.VUE_APP_CHAINID,
       data: data
     };
-    console.log(transaction);
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.signMoacTransaction(transaction).catch(e => {
+      let res = await tp.pushMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
+      console.log(res);
       if (res.result) {
-        let transaction = await chain3.mc.sendRawTransaction(res.data).catch(e => {
-          console.log(e);
+        return new Promise((resolve, reject) => {
+          self.instance.LogNewCampaign({
+            campaignID: campaignID,
+            topic: topic
+          }, function (error, result) {
+            if (!error) {
+              resolve(true);
+            } else {
+              reject(false)
+            }
+          });
         });
-        console.log(transaction);
+
+        // const filter = self.instance.LogNewCampaign({
+        //   campaignID: campaignID,
+        //   topic: topic
+        // }, function (error, result) {
+        //   if (!error) {
+        //     console.log(result)
+        //   }
+        // });
+        // event.watch(function (error, result) {
+        //   if (!error)
+        //     console.log(result);
+        // });
+        // event.stopWatching();
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -105,21 +132,31 @@ const Salon = {
 
     let transaction = {
       from: self.fromAddress,
-      to: process.env.VUE_APP_SALON_ADDRESS,
+      to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
+      chainId: process.env.VUE_APP_CHAINID,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.signMoacTransaction(transaction).catch(e => {
+      let res = await tp.pushMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
+      console.log(res);
       if (res.result) {
-        let transaction = await chain3.mc.sendRawTransaction(res.data).catch(e => {
-          console.log(e);
+        return new Promise((resolve, reject) => {
+          self.instance.LogRegister({
+            who: self.fromAddress
+          }, function (error, result) {
+            if (!error) {
+              console.log(result);
+              resolve(true);
+            } else {
+              reject(false)
+            }
+          });
         });
-        //transaction success
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -142,28 +179,38 @@ const Salon = {
     let self = this;
     let data;
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      data = self.instance.checkin.getData(campaignID, self.instance.options.from);
+      data = self.instance.checkin.getData(campaignID, self.fromAddress);
     } else {
-      data = self.instance.methods.checkin(campaignID, self.instance.options.from).encodeABI();
+      data = self.instance.methods.checkin(campaignID, self.fromAddress).encodeABI();
     }
 
     let transaction = {
       from: self.fromAddress,
-      to: process.env.VUE_APP_SALON_ADDRESS,
+      to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
+      chainId: process.env.VUE_APP_CHAINID,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.signMoacTransaction(transaction).catch(e => {
+      let res = await tp.pushMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
+      console.log(res);
       if (res.result) {
-        let transaction = await chain3.mc.sendRawTransaction(res.data).catch(e => {
-          console.log(e);
+        return new Promise((resolve, reject) => {
+          self.instance.LogCheckedIn({
+            who: self.fromAddress
+          }, function (error, result) {
+            if (!error) {
+              console.log(result);
+              resolve(true);
+            } else {
+              reject(false)
+            }
+          });
         });
-        //transaction success
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -193,21 +240,32 @@ const Salon = {
 
     let transaction = {
       from: self.fromAddress,
-      to: process.env.VUE_APP_SALON_ADDRESS,
+      to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
+      chainId: process.env.VUE_APP_CHAINID,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.signMoacTransaction(transaction).catch(e => {
+      let res = await tp.pushMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
+      console.log(res);
       if (res.result) {
-        let transaction = await chain3.mc.sendRawTransaction(res.data).catch(e => {
-          console.log(e);
+        return new Promise((resolve, reject) => {
+          self.instance.LogQuestion({
+            questioner: questioner,
+            replier: replier
+          }, function (error, result) {
+            if (!error) {
+              console.log(result);
+              resolve(true);
+            } else {
+              reject(false)
+            }
+          });
         });
-        //transaction success
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -236,9 +294,10 @@ const Salon = {
     let data = self.instance.methods.changePercentage(speakerP, sponsorP, participantP, questionP).encodeABI();
     let transaction = {
       from: self.fromAddress,
-      to: process.env.VUE_APP_SALON_ADDRESS,
+      to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
+      chainId: process.env.VUE_APP_CHAINID,
       data: data
     };
     let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -267,21 +326,31 @@ const Salon = {
 
     let transaction = {
       from: self.fromAddress,
-      to: process.env.VUE_APP_SALON_ADDRESS,
+      to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
+      chainId: process.env.VUE_APP_CHAINID,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.signMoacTransaction(transaction).catch(e => {
+      let res = await tp.pushMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
+      console.log(res);
       if (res.result) {
-        let transaction = await chain3.mc.sendRawTransaction(res.data).catch(e => {
-          console.log(e);
+        return new Promise((resolve, reject) => {
+          self.instance.LogClose({
+            campaignID: campaignID
+          }, function (error, result) {
+            if (!error) {
+              console.log(result);
+              resolve(true);
+            } else {
+              reject(false)
+            }
+          });
         });
-        //transaction success
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -292,6 +361,7 @@ const Salon = {
           console.log(e);
         });
         //transaction success
+        console.lg(transaction.status);
         if (web3.utils.hexToNumber(transaction.status) == 1) {
           return true;
         }
@@ -304,9 +374,7 @@ const Salon = {
     let res;
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      res = await self.instance.campaigns.call(campaignID).catch(e => {
-        console.log(e);
-      });
+      res = self.instance.campaigns(campaignID);
     } else {
       res = await self.instance.methods.campaigns(campaignID).call().catch(e => {
         console.log(e);

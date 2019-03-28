@@ -39,10 +39,22 @@
           </div>
         </v-card-title>
         <v-card-actions>
-          <v-btn flat color="orange" @click="toRegister()">{{registe}}</v-btn>
-          <v-btn flat color="orange" @click="toCheckin()">{{checkin}}</v-btn>
-          <v-btn flat color="orange" v-show="isAdmin" @click="addQuestion = true">问答</v-btn>
-          <v-btn flat color="orange" v-show="isAdmin" @click="toCloseCampaign()">{{closeCampaign}}</v-btn>
+          <v-btn flat color="orange" :loading="registloading" @click="toRegister()">{{registe}}</v-btn>
+          <v-btn flat color="orange" :loading="checkinloading" @click="toCheckin()">{{checkin}}</v-btn>
+          <v-btn
+            flat
+            color="orange"
+            :loading="questionloading"
+            v-show="isAdmin"
+            @click="addQuestion = true"
+          >问答</v-btn>
+          <v-btn
+            flat
+            color="orange"
+            :loading="closeloading"
+            v-show="isAdmin"
+            @click="toCloseCampaign()"
+          >{{closeCampaign}}</v-btn>
         </v-card-actions>
       </v-card>
     </v-flex>
@@ -162,7 +174,7 @@
 
 <script>
 import Salon from "../js/Salon";
-import { constants } from "fs";
+import { constants, truncate } from "fs";
 
 export default {
   props: { isNewCampaign: Boolean },
@@ -177,19 +189,24 @@ export default {
       editedItem: {
         campaignID: "20190322",
         topic: "test",
-        speaker: "0x845f235068B96F34e919324ac29fbBF75bf35bef",
-        sponsor: "0x652dC7534dC53455B92A54233606217aeF4a10DD"
+        speaker: "0xc5Eb69AF3450f789CbAfE343404D91eCAe0755DA",
+        sponsor: "0x0224dAfeeE5Fe4de0a8Bc2cFBdD120af68Cb0360"
+        // speaker: "0x845f235068B96F34e919324ac29fbBF75bf35bef",
+        // sponsor: "0x652dC7534dC53455B92A54233606217aeF4a10DD"
       },
       registe: "报名",
       checkin: "签到",
       closeCampaign: "关闭",
       buttonName: "创建",
-      loading: false,
       dialog: false,
       snackbar: false,
       isSalon: false,
       isAdmin: false,
       addQuestion: false,
+      registloading: false,
+      checkinloading: false,
+      questionloading: false,
+      closeloading: false,
       color: "",
       message: "",
       address: "",
@@ -207,18 +224,17 @@ export default {
   },
   methods: {
     newCampaign: async function() {
-      this.loading = true;
       const res = await Salon.newCampaign(
         this.editedItem.campaignID,
         this.editedItem.topic,
         this.editedItem.speaker,
         this.editedItem.sponsor
       ).catch(e => {
-        this.loading = false;
         console.log(e);
         this.message = "创建失败";
         this.color = "error";
       });
+      console.log(res);
       if (res) {
         this.message = "创建成功";
         this.color = "success";
@@ -228,9 +244,9 @@ export default {
       }
       this.snackbar = true;
       this.dialog = false;
-      this.loading = false;
     },
     toRegister: async function() {
+      this.registloading = true;
       const res = await Salon.register(this.salons.campaignID).catch(err => {
         console.log(err);
       });
@@ -242,9 +258,11 @@ export default {
         this.message = "报名失败!";
         this.color = "error";
       }
+      this.registloading = false;
       this.snackbar = true;
     },
     toCheckin: async function() {
+      this.checkinloading = true;
       const res = await Salon.checkin(this.salons.campaignID).catch(err => {
         console.log(err);
       });
@@ -256,9 +274,11 @@ export default {
         this.message = "签到失败!";
         this.color = "error";
       }
+      this.checkinloading = false;
       this.snackbar = true;
     },
     toAddQuestion: async function() {
+      this.questionloading = true;
       const res = await Salon.toAddQuestion(
         this.salons.campaignID,
         this.questioner,
@@ -273,15 +293,15 @@ export default {
         this.message = "添加失败!";
         this.color = "error";
       }
+      this.questionloading = false;
       this.snackbar = true;
     },
     toCloseCampaign: async function() {
-      this.loading = true;
+      this.closeloading = true;
       let res = await Salon.closeCampaign(this.salons.campaignID).catch(err => {
         this.message = "关闭失败!";
         this.color = "error";
         this.snackbar = true;
-        this.loading = false;
       });
       if (res) {
         this.closeCampaign = "已关闭";
@@ -291,21 +311,22 @@ export default {
         this.message = "关闭失败!";
         this.color = "error";
       }
+      this.closeloading = false;
       this.snackbar = true;
-      this.loading = false;
     },
     getSalonInfo: async function() {
       if (!this.search) {
         return;
       }
-      let res = await Salon.getSalonInfo(this.search);
-      console.log(res);
-      if (res && res.topic) {
-        if (!res.end) {
-          this.salons.campaignID = res.ID;
-          this.salons.topic = res.topic;
-          this.salons.speaker = res.speaker;
-          this.salons.sponsor = res.sponsor;
+      let res = await Salon.getSalonInfo(this.search).catch(e => {
+        console.log(e);
+      });
+      if (res && res[2]) {
+        if (!res[1]) {
+          this.salons.campaignID = res[0];
+          this.salons.topic = res[2];
+          this.salons.speaker = res[3];
+          this.salons.sponsor = res[4];
           this.isSalon = true;
         } else {
           this.message = "抱歉,沙龙已关闭";
@@ -314,6 +335,7 @@ export default {
           this.isSalon = false;
         }
       } else {
+        this.isSalon = false;
         this.color = "warning";
         this.message = "沙龙不存在,请确认沙龙ID是否正确";
         this.snackbar = true;
