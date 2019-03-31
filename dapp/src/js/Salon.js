@@ -53,14 +53,13 @@ const Salon = {
       to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
-      chainId: process.env.VUE_APP_CHAINID,
+      chainId: chain3.version.network,
       data: data
     };
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.pushMoacTransaction(transaction).catch(e => {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      console.log(res);
       if (res.result) {
         return new Promise((resolve, reject) => {
           self.instance.LogNewCampaign({
@@ -74,20 +73,6 @@ const Salon = {
             }
           });
         });
-
-        // const filter = self.instance.LogNewCampaign({
-        //   campaignID: campaignID,
-        //   topic: topic
-        // }, function (error, result) {
-        //   if (!error) {
-        //     console.log(result)
-        //   }
-        // });
-        // event.watch(function (error, result) {
-        //   if (!error)
-        //     console.log(result);
-        // });
-        // event.stopWatching();
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -103,24 +88,9 @@ const Salon = {
         }
       }
     }
-
-    // let newCampaign_logs = await self.instance.newCampaign(
-    //   campaignID,
-    //   topic,
-    //   speaker,
-    //   sponsor).catch(err => {
-    //   console.log(err)
-    // })
-    // let LogNewCampaignEvent = newCampaign_logs.logs.find(
-    //   e => e.event === "LogNewCampaign"
-    // )
-    // if (LogNewCampaignEvent) {
-    //   return true
-    // }
-    // return false
   },
 
-  register: async function (campaignID) {
+  registe: async function (campaignID) {
     let self = this;
     let data;
 
@@ -135,15 +105,14 @@ const Salon = {
       to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
-      chainId: process.env.VUE_APP_CHAINID,
+      chainId: chain3.version.network,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.pushMoacTransaction(transaction).catch(e => {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      console.log(res);
       if (res.result) {
         return new Promise((resolve, reject) => {
           self.instance.LogRegister({
@@ -175,13 +144,13 @@ const Salon = {
 
   },
 
-  checkin: async function (campaignID) {
+  checkin: async function (campaignID, address) {
     let self = this;
     let data;
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      data = self.instance.checkin.getData(campaignID, self.fromAddress);
+      data = self.instance.checkin.getData(campaignID, address);
     } else {
-      data = self.instance.methods.checkin(campaignID, self.fromAddress).encodeABI();
+      data = self.instance.methods.checkin(campaignID, address).encodeABI();
     }
 
     let transaction = {
@@ -189,19 +158,18 @@ const Salon = {
       to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
-      chainId: process.env.VUE_APP_CHAINID,
+      chainId: chain3.version.network,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.pushMoacTransaction(transaction).catch(e => {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      console.log(res);
       if (res.result) {
         return new Promise((resolve, reject) => {
           self.instance.LogCheckedIn({
-            who: self.fromAddress
+            who: address
           }, function (error, result) {
             if (!error) {
               console.log(result);
@@ -243,15 +211,14 @@ const Salon = {
       to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
-      chainId: process.env.VUE_APP_CHAINID,
+      chainId: chain3.version.network,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.pushMoacTransaction(transaction).catch(e => {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      console.log(res);
       if (res.result) {
         return new Promise((resolve, reject) => {
           self.instance.LogQuestion({
@@ -291,25 +258,79 @@ const Salon = {
     questionP
   ) {
     let self = this;
-    let data = self.instance.methods.changePercentage(speakerP, sponsorP, participantP, questionP).encodeABI();
+    let data;
+
+    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+      data = self.instance.changePercentage.getData(speakerP, sponsorP, participantP, questionP);
+    } else {
+      data = self.instance.methods.changePercentage(speakerP, sponsorP, participantP, questionP).encodeABI();
+    }
+
     let transaction = {
       from: self.fromAddress,
       to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
-      chainId: process.env.VUE_APP_CHAINID,
+      chainId: chain3.version.network,
       data: data
     };
-    let res = await tp.signEthTransaction(transaction).catch(e => {
-      console.log(e);
-    });
-    if (res.result) {
-      let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+
+    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      //transaction success
-      if (web3.utils.hexToNumber(transaction.status) == 1) {
-        return true;
+      return res.result;
+    } else {
+      let res = await tp.signEthTransaction(transaction).catch(e => {
+        console.log(e);
+      });
+      if (res.result) {
+        let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+          console.log(e);
+        });
+        //transaction success
+        if (web3.utils.hexToNumber(transaction.status) == 1) {
+          return true;
+        }
+      }
+    }
+  },
+
+  changeFee: async function (fee) {
+    let self = this;
+    let data;
+    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+      data = self.instance.changeRegisterFee.getData(fee);
+    } else {
+      data = self.instance.methods.changeRegisterFee(fee).encodeABI();
+    }
+
+    let transaction = {
+      from: self.fromAddress,
+      to: self.toAddress,
+      gasPrice: process.env.VUE_APP_GASPRICE,
+      gasLimit: process.env.VUE_APP_GAS,
+      chainId: chain3.version.network,
+      data: data
+    };
+
+    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
+        console.log(e);
+      });
+      return res.result;
+    } else {
+      let res = await tp.signEthTransaction(transaction).catch(e => {
+        console.log(e);
+      });
+      if (res.result) {
+        let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
+          console.log(e);
+        });
+        //transaction success
+        if (web3.utils.hexToNumber(transaction.status) == 1) {
+          return true;
+        }
       }
     }
   },
@@ -329,15 +350,14 @@ const Salon = {
       to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
-      chainId: process.env.VUE_APP_CHAINID,
+      chainId: chain3.version.network,
       data: data
     };
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.pushMoacTransaction(transaction).catch(e => {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      console.log(res);
       if (res.result) {
         return new Promise((resolve, reject) => {
           self.instance.LogClose({
@@ -371,14 +391,35 @@ const Salon = {
 
   getSalonInfo: async function (campaignID) {
     let self = this;
-    let res;
+    let campaign;
+    let speakerPercent;
+    let sponsorPercent;
+    let participantPercent;
+    let questionPercent;
+    let registerFee;
 
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      res = self.instance.campaigns(campaignID);
+      campaign = self.instance.campaigns(campaignID);
+      speakerPercent = self.instance.speakerPercent();
+      sponsorPercent = self.instance.sponsorPercent();
+      participantPercent = self.instance.participantPercent();
+      questionPercent = self.instance.questionPercent();
+      registerFee = self.instance.registerFee();
     } else {
-      res = await self.instance.methods.campaigns(campaignID).call().catch(e => {
-        console.log(e);
-      });
+      campaign = await self.instance.methods.campaigns(campaignID).call();
+      speakerPercent = await self.instance.methods.speakerPercent().call();
+      sponsorPercent = await self.instance.methods.sponsorPercent().call();
+      participantPercent = await self.instance.methods.participantPercent().call();
+      questionPercent = await self.instance.methods.questionPercent().call();
+      registerFee = await self.instance.methods.registerFee().call();
+    }
+    let res = {
+      campaign: campaign,
+      speakerPercent: speakerPercent,
+      sponsorPercent: sponsorPercent,
+      participantPercent: participantPercent,
+      questionPercent: questionPercent,
+      registerFee: registerFee
     }
     return res;
   },

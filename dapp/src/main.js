@@ -17,7 +17,7 @@ Vue.config.productionTip = false
 //   )
 // );
 if (process.env.VUE_APP_NETWORK === 'MOAC') {
-  window.chain3 = new Chain3(new Chain3.providers.HttpProvider('http://192.168.99.104:8545'));
+  window.chain3 = new Chain3(new Chain3.providers.HttpProvider('http://192.168.1.8:8545'));
   console.log(chain3.isConnected());
 } else {
   window.web3 = new Web3(

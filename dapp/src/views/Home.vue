@@ -1,7 +1,7 @@
 <template>
   <v-content>
-    <AccountInfo @toNewCampaign="toNewCampaign"/>
-    <SalonManager :isNewCampaign="isNewCampaign"/>
+    <AccountInfo @toNewCampaign="toNewCampaign" :isBalance="isBalance"/>
+    <SalonManager :isNewCampaign="isNewCampaign" @toGetBalance="toGetBalance"/>
   </v-content>
 </template>
 
@@ -12,13 +12,17 @@ import AccountInfo from "../components/AccountInfo";
 export default {
   data() {
     return {
-      isNewCampaign: false
+      isNewCampaign: false,
+      isBalance: false
     };
   },
   components: { AccountInfo, SalonManager },
   methods: {
     toNewCampaign: function() {
       this.isNewCampaign = !this.isNewCampaign;
+    },
+    toGetBalance: function() {
+      this.isBalance = !this.isBalance;
     }
   }
 };

@@ -25,43 +25,48 @@ const SalonToken = {
 
     const res = await tp.getCurrentWallet();
     self.fromAddress = res.data.address;
-    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+    if (process.env.VUE_APP_NETWORK === "MOAC") {
       self.toAddress = process.env.VUE_APP_TOKEN_ADDRESS_MOAC;
-      self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_TOKENABI)).at(self.toAddress);
-      // let res = self.instance.transferAdministrator(process.env.VUE_APP_SALON_ADDRESS_MOAC, {
-      //   from: self.fromAddress,
-      //   gasPrice: process.env.VUE_APP_GASPRICE,
-      //   gasLimit: process.env.VUE_APP_GAS,
-      // })
-      // console.log(res);
+      self.instance = chain3.mc
+        .contract(JSON.parse(process.env.VUE_APP_TOKENABI))
+        .at(self.toAddress);
     } else {
       self.toAddress = process.env.VUE_APP_TOKEN_ADDRESS;
-      self.instance = new web3.eth.Contract(JSON.parse(process.env.VUE_APP_TOKENABI), self.toAddress);
+      self.instance = new web3.eth.Contract(
+        JSON.parse(process.env.VUE_APP_TOKENABI),
+        self.toAddress
+      );
     }
   },
 
   totalSupply: async function () {
     let self = this;
 
-    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+    if (process.env.VUE_APP_NETWORK === "MOAC") {
       let tokens = self.instance.totalSupply();
-      return chain3.fromSha(tokens, 'mc');
+      return chain3.fromSha(tokens, "mc");
     }
-    let tokens = await self.instance.methods.totalSupply().call().catch(e => {
-      console.log(e);
-    });
+    let tokens = await self.instance.methods
+      .totalSupply()
+      .call()
+      .catch(e => {
+        console.log(e);
+      });
     return web3.utils.fromWei(tokens);
   },
 
-  getBalance: async function () {
+  getTokenBalance: async function () {
     let self = this;
-    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+    if (process.env.VUE_APP_NETWORK === "MOAC") {
       let tokens = self.instance.balanceOf(self.fromAddress);
-      return chain3.fromSha(tokens, 'mc');
+      return chain3.fromSha(tokens, "mc");
     }
-    let tokens = await self.instance.methods.balanceOf(self.fromAddress).call().catch(e => {
-      console.log(e);
-    });
+    let tokens = await self.instance.methods
+      .balanceOf(self.fromAddress)
+      .call()
+      .catch(e => {
+        console.log(e);
+      });
     return web3.utils.fromWei(tokens);
   },
 
@@ -70,8 +75,8 @@ const SalonToken = {
     let data;
     let _amount;
 
-    if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      _amount = chain3.toSha(amount, 'mc');
+    if (process.env.VUE_APP_NETWORK === "MOAC") {
+      _amount = chain3.toSha(amount, "mc");
       data = self.instance.transfer.getData(toAddress, _amount);
     } else {
       _amount = web3.utils.toWei(amount);
@@ -83,23 +88,26 @@ const SalonToken = {
       to: self.toAddress,
       gasPrice: process.env.VUE_APP_GASPRICE,
       gasLimit: process.env.VUE_APP_GAS,
-      chainId: process.env.VUE_APP_CHAINID,
+      chainId: chain3.version.network,
       data: data
     };
 
-    if (process.env.VUE_APP_NETWORK === 'MOAC') {
-      let res = await tp.pushMoacTransaction(transaction).catch(e => {
+    if (process.env.VUE_APP_NETWORK === "MOAC") {
+      let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      console.log(res);
       if (res.result) {
         return new Promise((resolve, reject) => {
-          const recepit = chain3.mc.getTransactionReceipt(res.data);
-          if (recepit && recepit.status) {
-            resolve(true);
-          } else {
-            reject(false);
-          }
+          self.instance.Transfer({
+            from: self.fromAddress,
+            to: self.toAddress
+          }, function (error, result) {
+            if (!error) {
+              resolve(true);
+            } else {
+              reject(false);
+            }
+          });
         });
       }
     } else {
@@ -107,30 +115,32 @@ const SalonToken = {
         console.log(e);
       });
       if (res.result) {
-        let transaction = await web3.eth.sendSignedTransaction(res.data).catch(e => {
-          console.log(e);
-        });
+        let transaction = await web3.eth
+          .sendSignedTransaction(res.data)
+          .catch(e => {
+            console.log(e);
+          });
         //transaction success
         if (web3.utils.hexToNumber(transaction.status) == 1) {
           return true;
         }
       }
     }
+  },
 
-
-    // const transfer_logs = await self.instance.transfer(
-    //   toAddress,
-    //   web3.utils.toWei(amount)
-    // );
-    // const transferEvent = transfer_logs.logs.find(e => e.event === "Transfer");
-    // if (transferEvent) {
-    //   return true;
-    // }
-    // return false;
+  getBalance: async function () {
+    let self = this;
+    if (process.env.VUE_APP_NETWORK === "MOAC") {
+      let balance = chain3.mc.getBalance(self.fromAddress).toString();
+      return chain3.fromSha(balance, "mc");
+    } else {
+      let balance = await web3.eth.getBalance(self.fromAddress).toString();
+      return web3.utils.fromWei(balance);
+    }
   },
 
   isAddress: function (address) {
-    if (process.env.VUE_APP_NETWORK === 'MOAC') {
+    if (process.env.VUE_APP_NETWORK === "MOAC") {
       return chain3.isAddress(address);
     }
     return web3.utils.isAddress(address);

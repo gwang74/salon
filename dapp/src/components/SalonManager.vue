@@ -5,10 +5,12 @@
         <v-text-field
           v-model="search"
           append-icon="search"
+          prepend-inner-icon="mdi-qrcode-scan"
+          @click:prepend-inner="scanForRegiste()"
           box
-          label="请输入想参加的沙龙ID"
+          label="扫码或输入想参加的沙龙ID"
           type="number"
-          @click:append="getSalonInfo()"
+          @click:append="getSalonInfo(search)"
         ></v-text-field>
       </v-flex>
     </v-container>
@@ -16,8 +18,10 @@
       <v-card class="white--text" color="cyan darken-2" v-show="isSalon">
         <v-card-title primary-title>
           <div>
-            <h3 class="headline mb-0">沙龙ID:{{salons.campaignID}}</h3>
-            <br>
+            <div class="text-xs-right">
+              <h3 class="headline mb-0">沙龙ID:{{salons.campaignID}}</h3>
+              <v-divider inset dark></v-divider>
+            </div>
             <span>
               主题
               <br>
@@ -35,26 +39,105 @@
               <br>
               {{salons.sponsor}}
             </span>
-            <span>奖励比例</span>
+            <br>
+            <v-divider dark></v-divider>
+            <v-layout row>
+              <div text-xs-center>
+                <span>报名费:</span>
+              </div>
+              <v-flex xs4>
+                <v-text-field
+                  v-model="registerFee"
+                  suffix="ABST"
+                  :readonly="!isAdmin"
+                  :append-outer-icon="[ isAdmin ? 'mdi-feather':'']"
+                  @click:append-outer="changeFee()"
+                ></v-text-field>
+              </v-flex>
+            </v-layout>
+            <div>
+              <v-flex xs7>
+                <span>奖励比例(主讲:赞助:参与:提问):</span>
+              </v-flex>
+              <v-layout row wrap>
+                <v-flex xs1>
+                  <v-text-field flat v-model="speakerPercent" :readonly="!isAdmin"></v-text-field>
+                </v-flex>
+                <v-flex xs1>
+                  <span class="float: bottom">:</span>
+                </v-flex>
+                <v-flex xs1>
+                  <v-text-field flat v-model="sponsorPercent" :readonly="!isAdmin"></v-text-field>
+                </v-flex>
+                <v-flex xs1>
+                  <span>:</span>
+                </v-flex>
+                <v-flex xs1>
+                  <v-text-field flat v-model="participantPercent" :readonly="!isAdmin"></v-text-field>
+                </v-flex>
+                <v-flex xs1>
+                  <span>:</span>
+                </v-flex>
+                <v-flex xs2>
+                  <v-text-field
+                    flat
+                    v-model="questionPercent"
+                    :readonly="!isAdmin"
+                    :append-outer-icon="[ isAdmin ? 'mdi-feather':'']"
+                    @click:append-outer="changePercent()"
+                  ></v-text-field>
+                </v-flex>
+              </v-layout>
+            </div>
           </div>
         </v-card-title>
         <v-card-actions>
-          <v-btn flat color="orange" :loading="registloading" @click="toRegister()">{{registe}}</v-btn>
-          <v-btn flat color="orange" :loading="checkinloading" @click="toCheckin()">{{checkin}}</v-btn>
           <v-btn
-            flat
-            color="orange"
-            :loading="questionloading"
-            v-show="isAdmin"
+            fab
+            color="green"
+            icon
+            dark
+            small
+            :disabled="isRegist"
+            v-show="!isClose"
+            @click="toRegiste()"
+          >
+            <v-icon>mdi-account-plus</v-icon>
+          </v-btn>
+          <v-btn
+            fab
+            small
+            dark
+            color="green"
+            icon
+            v-show="isAdmin && !isClose"
+            @click="toCheckin()"
+          >
+            <v-icon>mdi-account-check</v-icon>
+          </v-btn>
+          <v-btn
+            fab
+            dark
+            small
+            icon
+            color="green"
+            v-show="isAdmin && !isClose"
             @click="addQuestion = true"
-          >问答</v-btn>
+          >
+            <v-icon>mdi-account-question</v-icon>
+          </v-btn>
           <v-btn
-            flat
-            color="orange"
-            :loading="closeloading"
-            v-show="isAdmin"
+            fab
+            dark
+            small
+            color="green"
+            icon
+            :disabled="isClose"
+            v-show="isAdmin || isClose"
             @click="toCloseCampaign()"
-          >{{closeCampaign}}</v-btn>
+          >
+            <v-icon>close</v-icon>
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-flex>
@@ -106,6 +189,8 @@
           <v-text-field
             ref="speaker"
             v-model="editedItem.speaker"
+            prepend-inner-icon="mdi-qrcode-scan"
+            @click:prepend-inner="scanForSpeaker()"
             :rules="[() => !!editedItem.speaker || 'This field is required',
               ()=>isAddress(editedItem.speaker) || 'addrress is invalid']"
             label="主讲人"
@@ -117,6 +202,8 @@
           <v-text-field
             ref="sponsor"
             v-model="editedItem.sponsor"
+            prepend-inner-icon="mdi-qrcode-scan"
+            @click:prepend-inner="scanForSponsor()"
             :rules="[() => !!editedItem.sponsor || 'This field is required',
               ()=> isAddress(editedItem.sponsor)||'addrress is invalid']"
             label="赞助商"
@@ -142,9 +229,11 @@
           <v-text-field
             ref="questioner"
             v-model="questioner"
+            prepend-inner-icon="mdi-qrcode-scan"
+            @click:prepend-inner="scanForQuestioner()"
             :rules="[() => !!questioner || 'This field is required',
               ()=>isAddress(questioner) || 'addrress is invalid']"
-            label="回答者"
+            label="提问者"
             clear-icon="mdi-close-circle"
             required
             clearable
@@ -153,6 +242,8 @@
           <v-text-field
             ref="replier"
             v-model="replier"
+            prepend-inner-icon="mdi-qrcode-scan"
+            @click:prepend-inner="scanForReplier()"
             :rules="[() => !!replier || 'This field is required',
               ()=>isAddress(replier) || 'addrress is invalid']"
             label="回答者"
@@ -174,7 +265,7 @@
 
 <script>
 import Salon from "../js/Salon";
-import { constants, truncate } from "fs";
+import tp from "tp-js-sdk";
 
 export default {
   props: { isNewCampaign: Boolean },
@@ -203,16 +294,19 @@ export default {
       isSalon: false,
       isAdmin: false,
       addQuestion: false,
-      registloading: false,
-      checkinloading: false,
-      questionloading: false,
-      closeloading: false,
+      isRegist: false,
+      isClose: false,
       color: "",
       message: "",
       address: "",
       search: "",
       questioner: "",
-      replier: ""
+      replier: "",
+      speakerPercent: "",
+      sponsorPercent: "",
+      participantPercent: "",
+      questionPercent: "",
+      registerFee: ""
     };
   },
   beforeCreate: async function() {
@@ -238,6 +332,8 @@ export default {
       if (res) {
         this.message = "创建成功";
         this.color = "success";
+        this.toGetBalance();
+        this.getSalonInfo(this.editedItem.campaignID);
       } else {
         this.message = "创建失败";
         this.color = "error";
@@ -245,41 +341,58 @@ export default {
       this.snackbar = true;
       this.dialog = false;
     },
-    toRegister: async function() {
-      this.registloading = true;
-      const res = await Salon.register(this.salons.campaignID).catch(err => {
+    scanForRegiste: async function() {
+      let campaignID = await tp.invokeQRScanner();
+      console.log(campaignID);
+      await this.getSalonInfo(campaignID);
+    },
+    toRegiste: async function() {
+      const res = await Salon.registe(this.salons.campaignID).catch(err => {
         console.log(err);
       });
       if (res) {
+        this.toGetBalance();
         this.registe = "已报名";
         this.message = "报名成功!";
+        this.getSalonInfo(this.salons.campaignID);
+        this.isRegist = true;
         this.color = "success";
       } else {
         this.message = "报名失败!";
         this.color = "error";
       }
-      this.registloading = false;
       this.snackbar = true;
     },
     toCheckin: async function() {
-      this.checkinloading = true;
-      const res = await Salon.checkin(this.salons.campaignID).catch(err => {
-        console.log(err);
-      });
+      let address = await tp.invokeQRScanner();
+      console.log(address);
+      if (!this.isAddress(address)) {
+        if (process.env.VUE_APP_NETWORK === "MOAC") {
+          this.message = "请使用MOAC钱包";
+        } else {
+          this.message = "请使用ETH钱包";
+        }
+        this.snackbar = true;
+        return;
+      }
+      const res = await Salon.checkin(this.salons.campaignID, address).catch(
+        err => {
+          console.log(err);
+        }
+      );
       if (res) {
-        this.checkin = "已签到";
+        this.toGetBalance();
         this.message = "签到成功!";
+        this.isCheckin = true;
         this.color = "success";
       } else {
         this.message = "签到失败!";
         this.color = "error";
       }
-      this.checkinloading = false;
       this.snackbar = true;
     },
     toAddQuestion: async function() {
-      this.questionloading = true;
-      const res = await Salon.toAddQuestion(
+      const res = await Salon.addQuestion(
         this.salons.campaignID,
         this.questioner,
         this.replier
@@ -289,57 +402,85 @@ export default {
       if (res) {
         this.message = "添加成功!";
         this.color = "success";
+        this.getSalonInfo(this.salons.campaignID);
       } else {
         this.message = "添加失败!";
         this.color = "error";
       }
-      this.questionloading = false;
       this.snackbar = true;
     },
     toCloseCampaign: async function() {
-      this.closeloading = true;
       let res = await Salon.closeCampaign(this.salons.campaignID).catch(err => {
         this.message = "关闭失败!";
         this.color = "error";
         this.snackbar = true;
       });
       if (res) {
+        this.toGetBalance();
         this.closeCampaign = "已关闭";
         this.message = "关闭成功!";
+        this.isClose = true;
         this.color = "success";
       } else {
         this.message = "关闭失败!";
         this.color = "error";
       }
-      this.closeloading = false;
       this.snackbar = true;
     },
-    getSalonInfo: async function() {
-      if (!this.search) {
+    getSalonInfo: async function(campaignID) {
+      console.log(campaignID);
+      if (!campaignID) {
         return;
       }
-      let res = await Salon.getSalonInfo(this.search).catch(e => {
+      let res = await Salon.getSalonInfo(campaignID).catch(e => {
         console.log(e);
       });
-      if (res && res[2]) {
-        if (!res[1]) {
-          this.salons.campaignID = res[0];
-          this.salons.topic = res[2];
-          this.salons.speaker = res[3];
-          this.salons.sponsor = res[4];
+      if (res && res.campaign[2]) {
+        let campaign = res.campaign;
+        this.speakerPercent = res.speakerPercent;
+        this.sponsorPercent = res.sponsorPercent;
+        this.participantPercent = res.participantPercent;
+        this.questionPercent = res.questionPercent;
+        this.registerFee = res.registerFee;
+
+        this.salons.campaignID = campaign[0];
+        this.salons.topic = campaign[2];
+        this.salons.speaker = campaign[3];
+        this.salons.sponsor = campaign[4];
+        if (campaign[1]) {
           this.isSalon = true;
-        } else {
-          this.message = "抱歉,沙龙已关闭";
-          this.color = "warning";
-          this.snackbar = true;
-          this.isSalon = false;
+          this.isClose = true;
+          this.closeCampaign = "已关闭";
+          return;
         }
+        this.isSalon = true;
       } else {
-        this.isSalon = false;
+        this.message = "抱歉,该沙龙不存在!";
         this.color = "warning";
-        this.message = "沙龙不存在,请确认沙龙ID是否正确";
+        this.snackbar = true;
+        this.isSalon = false;
+      }
+    },
+    changeFee: async function() {
+      await Salon.changeFee(this.registerFee);
+    },
+    changePercent: async function() {
+      if (
+        this.speakerPercent +
+          this.sponsorPercent +
+          this.participantPercent +
+          this.questionPercent !=
+        100
+      ) {
+        this.message = "奖励比例总和必须为100%";
         this.snackbar = true;
       }
+      await Salon.changePercentage(
+        this.speakerPercent,
+        this.sponsorPercent,
+        this.participantPercent,
+        this.questionPercent
+      );
     },
     isAddress: function(address) {
       return Salon.isAddress(address);
@@ -361,6 +502,21 @@ export default {
         this.isAddress(this.questioner) &&
         this.isAddress(this.replier)
       );
+    },
+    scanForSpeaker: async function() {
+      this.editedItem.speaker = await tp.invokeQRScanner();
+    },
+    scanForSponsor: async function() {
+      this.editedItem.sponsor = await tp.invokeQRScanner();
+    },
+    scanForQuestioner: async function() {
+      this.questioner = await tp.invokeQRScanner();
+    },
+    scanForReplier: async function() {
+      this.replier = await tp.invokeQRScanner();
+    },
+    toGetBalance: function() {
+      this.$emit("toGetBalance");
     }
   },
   watch: {

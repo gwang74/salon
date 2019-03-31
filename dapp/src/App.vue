@@ -11,7 +11,7 @@
         </v-card-title>
 
         <v-card-actions class="grey darken-3 justify-center">&copy;2019 —
-          <strong>WeiDEX</strong>
+          <strong>AHBC SALON</strong>
         </v-card-actions>
       </v-card>
     </v-footer>
