@@ -365,7 +365,6 @@ export default {
     },
     toCheckin: async function() {
       let address = await tp.invokeQRScanner();
-      console.log(address);
       if (!this.isAddress(address)) {
         if (process.env.VUE_APP_NETWORK === "MOAC") {
           this.message = "请使用MOAC钱包";
@@ -504,16 +503,56 @@ export default {
       );
     },
     scanForSpeaker: async function() {
-      this.editedItem.speaker = await tp.invokeQRScanner();
+      let address = await tp.invokeQRScanner();
+      if (!this.isAddress(address)) {
+        if (process.env.VUE_APP_NETWORK === "MOAC") {
+          this.message = "请使用MOAC钱包";
+        } else {
+          this.message = "请使用ETH钱包";
+        }
+        this.snackbar = true;
+        return;
+      }
+      this.editedItem.speaker = address;
     },
     scanForSponsor: async function() {
-      this.editedItem.sponsor = await tp.invokeQRScanner();
+      let address = await tp.invokeQRScanner();
+      if (!this.isAddress(address)) {
+        if (process.env.VUE_APP_NETWORK === "MOAC") {
+          this.message = "请使用MOAC钱包";
+        } else {
+          this.message = "请使用ETH钱包";
+        }
+        this.snackbar = true;
+        return;
+      }
+      this.editedItem.sponsor = address;
     },
     scanForQuestioner: async function() {
-      this.questioner = await tp.invokeQRScanner();
+      let address = await tp.invokeQRScanner();
+      if (!this.isAddress(address)) {
+        if (process.env.VUE_APP_NETWORK === "MOAC") {
+          this.message = "请使用MOAC钱包";
+        } else {
+          this.message = "请使用ETH钱包";
+        }
+        this.snackbar = true;
+        return;
+      }
+      this.questioner = address;
     },
     scanForReplier: async function() {
-      this.replier = await tp.invokeQRScanner();
+      let address = await tp.invokeQRScanner();
+      if (!this.isAddress(address)) {
+        if (process.env.VUE_APP_NETWORK === "MOAC") {
+          this.message = "请使用MOAC钱包";
+        } else {
+          this.message = "请使用ETH钱包";
+        }
+        this.snackbar = true;
+        return;
+      }
+      this.replier = address;
     },
     toGetBalance: function() {
       this.$emit("toGetBalance");

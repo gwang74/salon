@@ -155,18 +155,6 @@ export default {
         this.color = "success";
         this.snackbar = true;
         this.getBalance();
-        // SalonToken.watchTransfer(this.toAddress)
-        //   .then(res => {
-        //     this.message = "转账成功!";
-        //     this.color = "success";
-        //     this.snackbar = true;
-        //     this.getBalance();
-        //   })
-        //   .catch(e => {
-        //     this.color = "error";
-        //     this.message = "转账失败!";
-        //     this.snackbar = true;
-        //   });
         this.dialog = false;
       } else {
         this.color = "error";
@@ -175,7 +163,17 @@ export default {
       }
     },
     scanFortoAddr: async function() {
-      this.toAddress = await tp.invokeQRScanner();
+      let address = await tp.invokeQRScanner();
+      if (!this.isAddress(address)) {
+        if (process.env.VUE_APP_NETWORK === "MOAC") {
+          this.message = "请使用MOAC钱包";
+        } else {
+          this.message = "请使用ETH钱包";
+        }
+        this.snackbar = true;
+        return;
+      }
+      this.toAddress = address;
     },
     isAddress: function(address) {
       return SalonToken.isAddress(address);
