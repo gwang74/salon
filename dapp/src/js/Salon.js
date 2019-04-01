@@ -9,6 +9,8 @@ const Salon = {
 
   fromAddress: null,
 
+  fromName: null,
+
   toAddress: null,
 
   init: async function () {
@@ -26,6 +28,7 @@ const Salon = {
 
     const res = await tp.getCurrentWallet();
     self.fromAddress = res.data.address;
+    self.fromName = res.data.name;
     if (process.env.VUE_APP_NETWORK === 'MOAC') {
       self.toAddress = process.env.VUE_APP_SALON_ADDRESS_MOAC;
       self.instance = chain3.mc.contract(JSON.parse(process.env.VUE_APP_SALONABI)).at(self.toAddress);

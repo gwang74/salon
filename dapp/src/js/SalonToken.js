@@ -100,7 +100,7 @@ const SalonToken = {
         return new Promise((resolve, reject) => {
           self.instance.Transfer({
             from: self.fromAddress,
-            to: self.toAddress
+            to: toAddress
           }, function (error, result) {
             if (!error) {
               resolve(true);

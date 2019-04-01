@@ -57,7 +57,21 @@
     <div>
       <v-card-text primary-title class="text-xs-center">
         <div>
-          <div class="orange--text text--lighten-1" v-show="isAdmin">管理员</div>
+          <v-btn
+            flat
+            multi-line
+            v-clipboard:copy="address"
+            v-clipboard:success="onCopy"
+            v-clipboard:error="onError"
+          >
+            <v-layout row wrap>
+              <v-flex xs2>
+                <span :class="[isAdmin ? 'orange--text subheading':'subheading']">{{name}}</span>
+                <br>
+                <span class="caption font-weight-thin">{{subAddress}}</span>
+              </v-flex>
+            </v-layout>
+          </v-btn>
         </div>
       </v-card-text>
       <v-avatar slot="offset" class="mx-auto d-block" size="130">
@@ -96,6 +110,8 @@ export default {
   data() {
     return {
       address: "",
+      name: "",
+      subAddress: "",
       toAddress: "",
       amount: "",
       tokenBalance: 0,
@@ -115,11 +131,13 @@ export default {
       this.isAdmin = await Salon.init();
       await SalonToken.init();
       this.address = Salon.fromAddress;
+      this.name = Salon.fromName + "\n";
       if (process.env.VUE_APP_NETWORK === "MOAC") {
         this.isMoac = "MOAC";
       } else {
         this.isMoac = "ETH";
       }
+      this.splitAddr();
     } catch (e) {
       console.log(e);
     }
@@ -191,6 +209,21 @@ export default {
     },
     roundFun: function(value, n) {
       return Math.round(value * Math.pow(10, n)) / Math.pow(10, n);
+    },
+    splitAddr: function() {
+      let length = this.address.length;
+      this.subAddress =
+        this.address.slice(0, 7) + "..." + this.address.slice(length - 4);
+    },
+    onCopy: function() {
+      this.message = "复制成功";
+      this.color = "success";
+      this.snackbar = true;
+    },
+    onError: function() {
+      this.message = "复制失败";
+      this.color = "error";
+      this.snackbar = true;
     }
   },
   watch: {

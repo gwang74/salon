@@ -41,15 +41,16 @@
             </span>
             <br>
             <v-divider dark></v-divider>
-            <v-layout row>
-              <div text-xs-center>
-                <span>报名费:</span>
-              </div>
-              <v-flex xs4>
+            <v-layout row style="height: 58px;">
+              <v-flex xs2 class="flex">
+                <p class="style-p">报名费:</p>
+              </v-flex>
+              <v-flex xs3 class=".flex">
                 <v-text-field
+                  dark
                   v-model="registerFee"
                   suffix="ABST"
-                  :readonly="!isAdmin"
+                  :disabled="!isAdmin"
                   :append-outer-icon="[ isAdmin ? 'mdi-feather':'']"
                   @click:append-outer="changeFee()"
                 ></v-text-field>
@@ -59,30 +60,31 @@
               <v-flex xs7>
                 <span>奖励比例(主讲:赞助:参与:提问):</span>
               </v-flex>
-              <v-layout row wrap>
-                <v-flex xs1>
-                  <v-text-field flat v-model="speakerPercent" :readonly="!isAdmin"></v-text-field>
+              <v-layout row wrap style="margin-left: 16px;margin-top: 12px;">
+                <v-flex xs1 class="flex1">
+                  <v-text-field dark flat v-model="speakerPercent" :disabled="!isAdmin"></v-text-field>
                 </v-flex>
-                <v-flex xs1>
-                  <span class="float: bottom">:</span>
+                <v-flex xs1 class="flex">
+                  <p class="style-p1">:</p>
                 </v-flex>
-                <v-flex xs1>
-                  <v-text-field flat v-model="sponsorPercent" :readonly="!isAdmin"></v-text-field>
+                <v-flex xs1 class="flex1">
+                  <v-text-field dark flat v-model="sponsorPercent" :disabled="!isAdmin"></v-text-field>
                 </v-flex>
-                <v-flex xs1>
-                  <span>:</span>
+                <v-flex xs1 class="flex">
+                  <p class="style-p1">:</p>
                 </v-flex>
-                <v-flex xs1>
-                  <v-text-field flat v-model="participantPercent" :readonly="!isAdmin"></v-text-field>
+                <v-flex xs1 class="flex1">
+                  <v-text-field dark flat v-model="participantPercent" :disabled="!isAdmin"></v-text-field>
                 </v-flex>
-                <v-flex xs1>
-                  <span>:</span>
+                <v-flex xs1 class="flex">
+                  <p class="style-p1">:</p>
                 </v-flex>
-                <v-flex xs2>
+                <v-flex xs2 class="flex1">
                   <v-text-field
                     flat
+                    dark
                     v-model="questionPercent"
-                    :readonly="!isAdmin"
+                    :disabled="!isAdmin"
                     :append-outer-icon="[ isAdmin ? 'mdi-feather':'']"
                     @click:append-outer="changePercent()"
                   ></v-text-field>
@@ -132,6 +134,7 @@
             small
             color="green"
             icon
+            style="margin-left: auto;"
             :disabled="isClose"
             v-show="isAdmin || isClose"
             @click="toCloseCampaign()"
@@ -282,8 +285,6 @@ export default {
         topic: "test",
         speaker: "0xc5Eb69AF3450f789CbAfE343404D91eCAe0755DA",
         sponsor: "0x0224dAfeeE5Fe4de0a8Bc2cFBdD120af68Cb0360"
-        // speaker: "0x845f235068B96F34e919324ac29fbBF75bf35bef",
-        // sponsor: "0x652dC7534dC53455B92A54233606217aeF4a10DD"
       },
       registe: "报名",
       checkin: "签到",
@@ -452,6 +453,7 @@ export default {
           this.closeCampaign = "已关闭";
           return;
         }
+        this.isClose = false;
         this.isSalon = true;
       } else {
         this.message = "抱歉,该沙龙不存在!";
@@ -473,6 +475,7 @@ export default {
       ) {
         this.message = "奖励比例总和必须为100%";
         this.snackbar = true;
+        return;
       }
       await Salon.changePercentage(
         this.speakerPercent,
@@ -565,3 +568,20 @@ export default {
   }
 };
 </script>
+
+<style scoped type="text/css">
+.flex {
+  margin-top: -12px;
+}
+.flex1 {
+  margin-top: -30px;
+  margin-left: -15px;
+}
+.style-p {
+  margin-top: 23px;
+}
+.style-p1 {
+  margin-top: 4px;
+}
+</style>
+
