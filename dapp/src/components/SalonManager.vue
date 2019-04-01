@@ -466,13 +466,13 @@ export default {
       await Salon.changeFee(this.registerFee);
     },
     changePercent: async function() {
-      if (
-        this.speakerPercent +
-          this.sponsorPercent +
-          this.participantPercent +
-          this.questionPercent !=
-        100
-      ) {
+      let sum =
+        Number(this.speakerPercent) +
+        Number(this.sponsorPercent) +
+        Number(this.participantPercent) +
+        Number(this.questionPercent);
+      console.log(sum);
+      if (sum != 100) {
         this.message = "奖励比例总和必须为100%";
         this.snackbar = true;
         return;
