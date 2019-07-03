@@ -63,20 +63,12 @@ const Salon = {
       let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      if (res.result) {
-        return new Promise((resolve, reject) => {
-          self.instance.LogNewCampaign({
-            campaignID: campaignID,
-            topic: topic
-          }, function (error, result) {
-            if (!error) {
-              resolve(true);
-            } else {
-              reject(false)
-            }
-          });
-        });
-      }
+
+      return res;
+      // console.log(res.result);
+      // if (res.result) {
+      //   return self.waitTransfer(res.data);
+      // }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
         console.log(e);
@@ -117,18 +109,7 @@ const Salon = {
         console.log(e);
       });
       if (res.result) {
-        return new Promise((resolve, reject) => {
-          self.instance.LogRegister({
-            who: self.fromAddress
-          }, function (error, result) {
-            if (!error) {
-              console.log(result);
-              resolve(true);
-            } else {
-              reject(false)
-            }
-          });
-        });
+        return self.waitTransfer(res.data);
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -170,18 +151,7 @@ const Salon = {
         console.log(e);
       });
       if (res.result) {
-        return new Promise((resolve, reject) => {
-          self.instance.LogCheckedIn({
-            who: address
-          }, function (error, result) {
-            if (!error) {
-              console.log(result);
-              resolve(true);
-            } else {
-              reject(false)
-            }
-          });
-        });
+        return self.waitTransfer(res.data);
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -223,19 +193,7 @@ const Salon = {
         console.log(e);
       });
       if (res.result) {
-        return new Promise((resolve, reject) => {
-          self.instance.LogQuestion({
-            questioner: questioner,
-            replier: replier
-          }, function (error, result) {
-            if (!error) {
-              console.log(result);
-              resolve(true);
-            } else {
-              reject(false)
-            }
-          });
-        });
+        return self.waitTransfer(res.data);
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -282,7 +240,9 @@ const Salon = {
       let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      return res.result;
+      if (res.result) {
+        return self.waitTransfer(res.data);
+      }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
         console.log(e);
@@ -321,7 +281,10 @@ const Salon = {
       let res = await tp.sendMoacTransaction(transaction).catch(e => {
         console.log(e);
       });
-      return res.result;
+      return res;
+      // if (res.result) {
+      //   return self.waitTransfer(res.data);
+      // }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
         console.log(e);
@@ -362,18 +325,7 @@ const Salon = {
         console.log(e);
       });
       if (res.result) {
-        return new Promise((resolve, reject) => {
-          self.instance.LogClose({
-            campaignID: campaignID
-          }, function (error, result) {
-            if (!error) {
-              console.log(result);
-              resolve(true);
-            } else {
-              reject(false)
-            }
-          });
-        });
+        return self.waitTransfer(res.data);
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -432,6 +384,40 @@ const Salon = {
       return chain3.isAddress(address);
     }
     return web3.utils.isAddress(address);
+  },
+
+  waitTransfer: async function (transactionHash) {
+    // return new Promise((resolve, reject) => {
+    //   console.log(transactionHash);
+    //   while (true) {
+    //     let receipt = chain3.mc.getTransactionReceipt(transactionHash);
+    //     if (receipt) {
+    //       console.log(chain3.fromDecimal(receipt.status));
+    //     }
+    //     if (receipt && chain3.fromDecimal(receipt.status) == 1) {
+    //       resolve(true);
+    //       break;
+    //     } else if (receipt && chain3.fromDecimal(receipt.status) == 0) {
+    //       reject(false);
+    //       break;
+    //     }
+    //   }
+    // });
+    let res;
+    while (true) {
+      let receipt = chain3.mc.getTransactionReceipt(transactionHash);
+      if (receipt) {
+        console.log(chain3.fromDecimal(receipt.status));
+      }
+      if (receipt && chain3.fromDecimal(receipt.status) == 1) {
+        res = true;
+        break;
+      } else if (receipt && chain3.fromDecimal(receipt.status) == 0) {
+        res = false;
+        break;
+      }
+    }
+    return res;
   }
 };
 

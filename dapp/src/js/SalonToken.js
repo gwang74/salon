@@ -97,18 +97,7 @@ const SalonToken = {
         console.log(e);
       });
       if (res.result) {
-        return new Promise((resolve, reject) => {
-          self.instance.Transfer({
-            from: self.fromAddress,
-            to: toAddress
-          }, function (error, result) {
-            if (!error) {
-              resolve(true);
-            } else {
-              reject(false);
-            }
-          });
-        });
+        return self.waitTransfer(res.data);
       }
     } else {
       let res = await tp.signEthTransaction(transaction).catch(e => {
@@ -144,6 +133,21 @@ const SalonToken = {
       return chain3.isAddress(address);
     }
     return web3.utils.isAddress(address);
+  },
+
+  waitTransfer: function (transactionHash) {
+    return new Promise((resolve, reject) => {
+      while (true) {
+        let receipt = chain3.mc.getTransactionReceipt(transactionHash);
+        if (receipt && chain3.fromDecimal(receipt.status) == 1) {
+          resolve(true);
+          break;
+        } else if (receipt && chain3.fromDecimal(receipt.status) == 0) {
+          reject(false);
+          break;
+        }
+      }
+    });
   }
 };
 

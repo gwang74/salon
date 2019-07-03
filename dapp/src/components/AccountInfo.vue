@@ -46,6 +46,24 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="isQRCode">
+      <v-card>
+        <v-img :src="qrcodeUrl"/>
+        <v-card-text class="text-xs-center">
+          <div>
+            <span class="caption font-weight-thin">{{address}}</span>
+            <br>
+            <v-btn
+              flat
+              multi-line
+              v-clipboard:copy="address"
+              v-clipboard:success="onCopy"
+              v-clipboard:error="onError"
+            >复制钱包地址</v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
     <v-layout row wrap>
       <v-flex xs2>
         <v-snackbar v-model="snackbar" :multi-line="true" :top="true" :color="color">
@@ -57,20 +75,14 @@
     <div>
       <v-card-text primary-title class="text-xs-center">
         <div>
-          <v-btn
-            flat
-            multi-line
-            v-clipboard:copy="address"
-            v-clipboard:success="onCopy"
-            v-clipboard:error="onError"
-          >
-            <v-layout row wrap>
-              <v-flex xs2>
+          <v-btn flat @click="createQRCode()">
+            <v-card-text class="text-xs-center">
+              <div style="margin-top: -20px;">
                 <span :class="[isAdmin ? 'orange--text subheading':'subheading']">{{name}}</span>
                 <br>
                 <span class="caption font-weight-thin">{{subAddress}}</span>
-              </v-flex>
-            </v-layout>
+              </div>
+            </v-card-text>
           </v-btn>
         </div>
       </v-card-text>
@@ -103,7 +115,7 @@
 import SalonToken from "../js/SalonToken";
 import Salon from "../js/Salon";
 import tp from "tp-js-sdk";
-import { constants } from "fs";
+import QRCode from "qrcode";
 
 export default {
   props: { isBalance: Boolean },
@@ -120,6 +132,8 @@ export default {
       dialog: false,
       isAdmin: false,
       snackbar: false,
+      isQRCode: false,
+      qrcodeUrl: "",
       message: "",
       color: "",
       isMoac: "",
@@ -131,7 +145,7 @@ export default {
       this.isAdmin = await Salon.init();
       await SalonToken.init();
       this.address = Salon.fromAddress;
-      this.name = Salon.fromName + "\n";
+      this.name = Salon.fromName;
       if (process.env.VUE_APP_NETWORK === "MOAC") {
         this.isMoac = "MOAC";
       } else {
@@ -224,6 +238,19 @@ export default {
       this.message = "复制失败";
       this.color = "error";
       this.snackbar = true;
+    },
+    createQRCode: async function() {
+      let opts = {
+        errorCorrectionLevel: "H",
+        type: "image/png",
+        rendererOpts: {
+          quality: 0.3
+        }
+      };
+      this.qrcodeUrl = await QRCode.toDataURL(this.address, opts).catch(err => {
+        console.error(err);
+      });
+      this.isQRCode = true;
     }
   },
   watch: {

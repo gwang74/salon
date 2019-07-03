@@ -12,13 +12,20 @@ import VueClipboard from 'vue-clipboard2'
 let vConsole = new VConsole();
 Vue.use(VueClipboard)
 
-
-
 Vue.config.productionTip = false
 
 if (process.env.VUE_APP_NETWORK === 'MOAC') {
-  window.chain3 = new Chain3(new Chain3.providers.HttpProvider(process.env.VUE_APP_SALON_VNODE_MOAC));
-  console.log(chain3.isConnected());
+  let hosts = process.env.VUE_APP_SALON_VNODE_MOAC.split(',');
+  while (true) {
+    let index = Math.floor(Math.random() * hosts.length);
+    console.log(index);
+    window.chain3 = new Chain3(new Chain3.providers.HttpProvider(hosts[index]));
+    console.log(chain3.isConnected())
+    if (chain3.isConnected()) {
+      break;
+    }
+  }
+
 } else {
   window.web3 = new Web3(new Web3.providers.HttpProvider(process.env.VUE_APP_SALON_VNODE));
 }

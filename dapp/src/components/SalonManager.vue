@@ -329,18 +329,26 @@ export default {
         this.message = "创建失败";
         this.color = "error";
       });
-      console.log(res);
-      if (res) {
-        this.message = "创建成功";
-        this.color = "success";
-        this.toGetBalance();
-        this.getSalonInfo(this.editedItem.campaignID);
+      if(res.result){
+        this.closeDialog();
+        let res = await Salon.waitTransfer(res.data).catch(err => {
+          console.log(err);
+        });
+        if (res) {
+            this.message = "创建成功";
+            this.color = "success";
+            this.toGetBalance();
+            this.getSalonInfo(this.editedItem.campaignID);
+          } else {
+            this.message = "创建失败";
+            this.color = "error";
+          }
+          this.snackbar = true;
       } else {
-        this.message = "创建失败";
+        this.message = "创建失败!";
         this.color = "error";
+        this.snackbar = true;
       }
-      this.snackbar = true;
-      this.dialog = false;
     },
     scanForRegiste: async function() {
       let campaignID = await tp.invokeQRScanner();
@@ -351,18 +359,31 @@ export default {
       const res = await Salon.registe(this.salons.campaignID).catch(err => {
         console.log(err);
       });
-      if (res) {
-        this.toGetBalance();
-        this.registe = "已报名";
-        this.message = "报名成功!";
-        this.getSalonInfo(this.salons.campaignID);
-        this.isRegist = true;
+      if(res.result){
+        Salon.waitTransfer(res.data).then(res => {
+          if (res) {
+            this.toGetBalance();
+            this.registe = "已报名";
+            this.message = "报名成功!";
+            this.getSalonInfo(this.salons.campaignID);
+            this.isRegist = true;
+            this.color = "success";
+          } else {
+            this.message = "报名失败!";
+            this.color = "error";
+          }
+          this.snackbar = true;
+        }).catch(err => {
+          console.log(err);
+        });
         this.color = "success";
-      } else {
+        this.message = "请稍等交易上链。。。";
+        this.snackbar = true;
+      }else{
         this.message = "报名失败!";
         this.color = "error";
+        this.snackbar = true;
       }
-      this.snackbar = true;
     },
     toCheckin: async function() {
       let address = await tp.invokeQRScanner();
@@ -462,8 +483,31 @@ export default {
         this.isSalon = false;
       }
     },
-    changeFee: async function() {
-      await Salon.changeFee(this.registerFee);
+    changeFee:async function() {
+     let res = await Salon.changeFee(this.registerFee);
+     if(res.result){
+        this.closeDialog()
+        Salon.waitTransfer(res.data).then(res => {
+            if (res) {
+              this.toGetBalance();
+              this.message = "报名费已变更!";
+              this.getSalonInfo(this.salons.campaignID);
+              this.isRegist = true;
+              this.color = "success";
+            } else {
+              this.message = "创建失败";
+              this.color = "error";
+            }
+            this.snackbar = true;
+          }).catch(err => {
+            console.log(err);
+          });
+      } else {
+        this.message = "报名费变更失败!";
+        this.color = "error";
+        this.snackbar = true;
+      }
+      this.snackbar = true;
     },
     changePercent: async function() {
       let sum =
@@ -559,6 +603,13 @@ export default {
     },
     toGetBalance: function() {
       this.$emit("toGetBalance");
+    },
+    closeDialog: function(){
+      console.log("请稍等交易上链。。。");
+      this.color = "success";
+      this.message = "请稍等交易上链。。。";
+      this.snackbar = true;
+      this.dialog = false;
     }
   },
   watch: {
