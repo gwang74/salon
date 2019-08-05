@@ -24,22 +24,22 @@
             </div>
             <span>
               主题
-              <br>
+              <br />
               {{salons.topic}}
             </span>
-            <br>
+            <br />
             <span>
               主讲人
-              <br>
+              <br />
               {{salons.speaker}}
             </span>
-            <br>
+            <br />
             <span>
               赞助商
-              <br>
+              <br />
               {{salons.sponsor}}
             </span>
-            <br>
+            <br />
             <v-divider dark></v-divider>
             <v-layout row style="height: 58px;">
               <v-flex xs2 class="flex">
@@ -281,10 +281,10 @@ export default {
         sponsor: ""
       },
       editedItem: {
-        campaignID: "20190322",
-        topic: "test",
-        speaker: "0xc5Eb69AF3450f789CbAfE343404D91eCAe0755DA",
-        sponsor: "0x0224dAfeeE5Fe4de0a8Bc2cFBdD120af68Cb0360"
+        campaignID: "",
+        topic: "",
+        speaker: "",
+        sponsor: ""
       },
       registe: "报名",
       checkin: "签到",
@@ -329,21 +329,21 @@ export default {
         this.message = "创建失败";
         this.color = "error";
       });
-      if(res.result){
+      if (res.result) {
         this.closeDialog();
         let res = await Salon.waitTransfer(res.data).catch(err => {
           console.log(err);
         });
         if (res) {
-            this.message = "创建成功";
-            this.color = "success";
-            this.toGetBalance();
-            this.getSalonInfo(this.editedItem.campaignID);
-          } else {
-            this.message = "创建失败";
-            this.color = "error";
-          }
-          this.snackbar = true;
+          this.message = "创建成功";
+          this.color = "success";
+          this.toGetBalance();
+          this.getSalonInfo(this.editedItem.campaignID);
+        } else {
+          this.message = "创建失败";
+          this.color = "error";
+        }
+        this.snackbar = true;
       } else {
         this.message = "创建失败!";
         this.color = "error";
@@ -359,27 +359,29 @@ export default {
       const res = await Salon.registe(this.salons.campaignID).catch(err => {
         console.log(err);
       });
-      if(res.result){
-        Salon.waitTransfer(res.data).then(res => {
-          if (res) {
-            this.toGetBalance();
-            this.registe = "已报名";
-            this.message = "报名成功!";
-            this.getSalonInfo(this.salons.campaignID);
-            this.isRegist = true;
-            this.color = "success";
-          } else {
-            this.message = "报名失败!";
-            this.color = "error";
-          }
-          this.snackbar = true;
-        }).catch(err => {
-          console.log(err);
-        });
+      if (res.result) {
+        Salon.waitTransfer(res.data)
+          .then(res => {
+            if (res) {
+              this.toGetBalance();
+              this.registe = "已报名";
+              this.message = "报名成功!";
+              this.getSalonInfo(this.salons.campaignID);
+              this.isRegist = true;
+              this.color = "success";
+            } else {
+              this.message = "报名失败!";
+              this.color = "error";
+            }
+            this.snackbar = true;
+          })
+          .catch(err => {
+            console.log(err);
+          });
         this.color = "success";
         this.message = "请稍等交易上链。。。";
         this.snackbar = true;
-      }else{
+      } else {
         this.message = "报名失败!";
         this.color = "error";
         this.snackbar = true;
@@ -483,11 +485,13 @@ export default {
         this.isSalon = false;
       }
     },
-    changeFee:async function() {
-     let res = await Salon.changeFee(this.registerFee);
-     if(res.result){
-        this.closeDialog()
-        Salon.waitTransfer(res.data).then(res => {
+    changeFee: async function() {
+      var res = await Salon.changeFee(this.registerFee);
+      if (res.result) {
+        this.transferHash = res.data;
+        this.closeDialog();
+        Salon.waitTransfer(res.data)
+          .then(res => {
             if (res) {
               this.toGetBalance();
               this.message = "报名费已变更!";
@@ -499,7 +503,8 @@ export default {
               this.color = "error";
             }
             this.snackbar = true;
-          }).catch(err => {
+          })
+          .catch(err => {
             console.log(err);
           });
       } else {
@@ -604,7 +609,7 @@ export default {
     toGetBalance: function() {
       this.$emit("toGetBalance");
     },
-    closeDialog: function(){
+    closeDialog: function() {
       console.log("请稍等交易上链。。。");
       this.color = "success";
       this.message = "请稍等交易上链。。。";

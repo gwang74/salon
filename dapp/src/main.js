@@ -9,7 +9,7 @@ import Chain3 from 'chain3'
 import VConsole from 'vconsole'
 import VueClipboard from 'vue-clipboard2'
 
-let vConsole = new VConsole();
+// let vConsole = new VConsole();
 Vue.use(VueClipboard)
 
 Vue.config.productionTip = false
@@ -18,8 +18,7 @@ if (process.env.VUE_APP_NETWORK === 'MOAC') {
   let hosts = process.env.VUE_APP_SALON_VNODE_MOAC.split(',');
   while (true) {
     let index = Math.floor(Math.random() * hosts.length);
-    console.log(index);
-    window.chain3 = new Chain3(new Chain3.providers.HttpProvider(hosts[index]));
+    window.chain3 = new Chain3(new Chain3.providers.HttpProvider("https://" + hosts[index]));
     console.log(chain3.isConnected())
     if (chain3.isConnected()) {
       break;
