@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
+import Vuetify, { VApp } from 'vuetify/lib'
 import 'vuetify/src/stylus/app.styl'
 import zhHans from 'vuetify/es5/locale/zh-Hans'
 
@@ -16,5 +16,8 @@ Vue.use(Vuetify, {
     secondary: '#b0bec5',
     accent: '#8c9eff',
     error: '#b71c1c'
+  },
+  components: {
+    VApp
   }
 })

@@ -6,7 +6,7 @@
           <v-text-field
             ref="fromAddress"
             v-model="address"
-            label="转账地址"
+            label="发送方"
             clear-icon="mdi-close-circle"
             disabled
             box
@@ -32,7 +32,7 @@
             @click:prepend-inner="scanFortoAddr()"
             :rules="[() => !!toAddress || 'This field is required',
               ()=>isAddress(toAddress) || 'addrress is invalid']"
-            label="接收地址"
+            label="接收方"
             clear-icon="mdi-close-circle"
             required
             clearable
@@ -86,7 +86,7 @@
           </v-btn>
         </div>
       </v-card-text>
-      <v-avatar slot="offset" class="mx-auto d-block" size="130">
+      <v-avatar slot="offset" class="mx-auto d-block" size="110">
         <img :src="salonImg">
       </v-avatar>
     </div>
@@ -99,7 +99,7 @@
       </div>
     </v-card-text>
     <v-card-text class="text-xs-center">
-      <v-btn color="success" round class="font-weight-light" @click="dialog = true">发送</v-btn>
+      <v-btn color="success" round class="font-weight-light" @click="dialog = true">转账</v-btn>
       <v-btn
         color="success"
         v-show="isAdmin"
@@ -167,6 +167,9 @@ export default {
     }
   },
   methods: {
+    onBlurInput () {
+			window.scroll(0, 0)
+		},
     getTotalSupply: async function() {
       this.totalSupply = await SalonToken.totalSupply();
     },
