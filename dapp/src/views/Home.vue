@@ -7,7 +7,7 @@
     <v-tab href="#tab-2">
       <v-icon left>person</v-icon>我
     </v-tab>
-    <v-tabs-items>
+    <v-tabs-items touchless>
       <v-tab-item :key="1" :value="'tab-1'">
         <SalonInfo />
       </v-tab-item>

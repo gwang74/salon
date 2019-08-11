@@ -140,10 +140,9 @@
             v-show="isAdmin && !isClose"
             @click="toCloseCampaign()"
           >
-            已关闭
             <v-icon>close</v-icon>
           </v-btn>
-          <v-card-text style="margin-left: auto;">已关闭</v-card-text>
+          <v-card-text style="margin-right: auto;" v-show="isClose">已关闭</v-card-text>
         </v-card-actions>
       </v-card>
     </v-flex>
